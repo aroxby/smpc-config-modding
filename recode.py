@@ -27,8 +27,35 @@ class Token:
         self.node = node
 
     @property
-    def type(self):  # TODO: Rename this to something that's not a reserve word
-        return get_by_json_path(self.node, 'Value')
+    def type_name(self):
+        config = get_by_json_path(self.node, 'Value')
+        type_name = config\
+            .removeprefix('configs/pickup/loot_')\
+            .removesuffix('.config')\
+            .removesuffix('_01')
+        return type_name
+
+    @staticmethod
+    def summarize(token_cost):
+        REWARD_TYPES = (
+            # The order they appear in the UI
+            # Research, Landmark, Base, Crime, Challenge, Backpack
+            'bio', 'traversal', 'armor',  'battery', 'fiberoptics', 'microchips'
+        )
+        STORY_TYPES = (
+            'impact_web_unlock', 'electric_unlock', 'web_bomb_unlock', 'trip_mine_unlock'
+        )
+        cost = [0] * len(REWARD_TYPES)
+        for token_type, count in token_cost.items():
+            if token_type in STORY_TYPES:  # Skip these at least for now
+                continue
+            if token_type not in REWARD_TYPES:
+                raise IndexError(f'Unknown token type: {token_type}')
+            index = REWARD_TYPES.index(token_type)
+            if cost[index] != 0:
+                raise ValueError(f'Repeated token type {token_type}, {cost[index]} -> {count}')
+            cost[index] = count
+        return cost
 
 
 class Upgrade:
@@ -43,12 +70,21 @@ class Upgrade:
     def token_cost(self):
         rsc_path = 'ResourcesPerLevel?.Value.ResourcesNeeded?.Value'
         rsc_nodes = get_by_json_path(self.node, rsc_path)
-        rsc_nodes = rsc_nodes or []  # TODO: Figure out how the JSON is expressing `None` for this
+        rsc_nodes = rsc_nodes or []
+
+        # This can be a single value instead of an array
+        if isinstance(rsc_nodes, dict):
+            rsc_nodes = [{
+                # TODO: It'd be nice to unpack all the other nodes
+                # instead of repacking this one to be unpacked later
+                'Value': rsc_nodes,
+            }]
+
         tokens = {}
         for rsc_node in rsc_nodes:
             token = Token(get_by_json_path(rsc_node, 'Value.Item'))
             count = get_by_json_path(rsc_node, 'Value.Count.Value')
-            token_type = token.type
+            token_type = token.type_name
             tokens[token_type] = count
         return tokens
 
@@ -62,6 +98,7 @@ def recode(path):
         data = load(file)
 
     update_skills(data)
+    update_upgrades(data)
 
     with open(path, "w") as file:
         dump(data, file)
@@ -121,9 +158,15 @@ def get_upgrades(data):
             data_node = get_by_json_path(item_node, data_path)
             data_nodes.append(data_node)
 
-    for node in data_nodes:
-        upgrade = Upgrade(node)
-        print(upgrade.name, ': ', upgrade.level_requirement, upgrade.token_cost)
+    upgrades = [Upgrade(data_node) for data_node in data_nodes]
+    return upgrades
+
+
+def update_upgrades(data):
+    upgrades = get_upgrades(data)
+    for upgrade in upgrades:
+        token_summary = Token.summarize(upgrade.token_cost)
+        print(upgrade.name, ': ', upgrade.level_requirement, token_summary)
 
 
 def get_skills(data):
