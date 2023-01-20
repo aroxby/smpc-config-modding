@@ -92,6 +92,10 @@ class Upgrade:
     def level_requirement(self):
         return get_by_json_path(self.node, 'Level?.Value')
 
+    def remove_token_cost(self):
+        # TODO: It would be nice to keep the story tokens
+        self.node.pop('ResourcesPerLevel', None)
+
 
 def recode(path):
     with open(path) as file:
@@ -165,8 +169,7 @@ def get_upgrades(data):
 def update_upgrades(data):
     upgrades = get_upgrades(data)
     for upgrade in upgrades:
-        token_summary = Token.summarize(upgrade.token_cost)
-        print(upgrade.name, ': ', upgrade.level_requirement, token_summary)
+        upgrade.remove_token_cost()
 
 
 def get_skills(data):
