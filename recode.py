@@ -16,6 +16,11 @@ class Skill:
     def cost(self):
         return int(get_by_json_path(self.node, 'Value.SkillCost.Value'))
 
+    @cost.setter
+    def cost(self, value):
+        cost_node = get_by_json_path(self.node, 'Value.SkillCost')
+        cost_node['Value'] = value
+
 
 class Token:
     def __init__(self, node):
@@ -44,13 +49,9 @@ class Upgrade:
             token = Token(get_by_json_path(rsc_node, 'Value.Item'))
             count = get_by_json_path(rsc_node, 'Value.Count.Value')
             token_type = token.type
-            # DEBUG TODO: assert token type not already in dict
-            # Temp Debug
-            assert token_type not in tokens
-            # Temp Debug
             tokens[token_type] = count
         return tokens
-        
+
     @property
     def level_requirement(self):
         return get_by_json_path(self.node, 'Level?.Value')
@@ -59,11 +60,9 @@ class Upgrade:
 def recode(path):
     with open(path) as file:
         data = load(file)
-    
-    # get_upgrades(data)
-    # get_skills(data)
-    
-    # dump(data, sys.stdout)
+
+    update_skills(data)
+
     with open(path, "w") as file:
         dump(data, file)
 
@@ -74,7 +73,6 @@ def load(file):
 
 def dump(data, file):
     json.dump(data, file, indent=2)
-
 
 
 def get_by_json_path(data, path):
@@ -138,13 +136,14 @@ def get_skills(data):
         upgrades = get_by_json_path(upgrade_chain, upgrades_path)
         upgrade_nodes += upgrades
 
-    skills_by_cost = defaultdict(list)
-    for node in upgrade_nodes:
-        skill = Skill(node)
-        cost = skill.cost
-        tier = skills_by_cost[cost].append(skill.name)
+    skills = [Skill(node) for node in upgrade_nodes]
+    return skills
 
-    print(skills_by_cost)
+
+def update_skills(data):
+    skills = get_skills(data)
+    for skill in skills:
+        skill.cost = 0
 
 
 def main(argv):
