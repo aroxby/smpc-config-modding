@@ -97,12 +97,55 @@ class Upgrade:
         self.node.pop('ResourcesPerLevel', None)
 
 
+class Challenge:
+    def __init__(self, node):
+        self.node = node
+
+    @property
+    def name(self):
+        return get_by_json_path(self.node, 'ChallengeName.Value')
+
+    # Note: It'd be really slick to access these tiers like an array but probably not worth it
+    @property
+    def score_tier_1(self):
+        return get_by_json_path(self.node, 'ScoreTier1.Value')
+
+    @property
+    def score_tier_2(self):
+        return get_by_json_path(self.node, 'ScoreTier2.Value')
+
+    @property
+    def score_tier_3(self):
+        return get_by_json_path(self.node, 'ScoreTier3.Value')
+
+    @score_tier_1.setter
+    def score_tier_1(self, value):
+        self.node['ScoreTier1']['Value'] = value
+
+    @score_tier_2.setter
+    def score_tier_2(self, value):
+        self.node['ScoreTier2']['Value'] = value
+
+    @score_tier_3.setter
+    def score_tier_3(self, value):
+        self.node['ScoreTier3']['Value'] = value
+
+    @property
+    def par_time(self):
+        return get_by_json_path(self.node, 'ParTime.Value')
+
+    @par_time.setter
+    def par_time(self, value):
+        self.node['ParTime']['Value'] = value
+
+
 def recode(path):
     with open(path) as file:
         data = load(file)
 
-    update_skills(data)
-    update_upgrades(data)
+    # update_skills(data)
+    # update_upgrades(data)
+    update_challenges(data)
 
     with open(path, "w") as file:
         dump(data, file)
@@ -190,6 +233,27 @@ def update_skills(data):
     skills = get_skills(data)
     for skill in skills:
         skill.cost = 0
+
+def get_challenges(data):
+    challenges_path = 'Main.ChallengeScoreData.Value'
+    challenge_nodes = get_by_json_path(data, challenges_path)
+
+    challenges = []
+    challenge_path = 'Value'
+    for node in challenge_nodes:
+        challenges.append(Challenge(get_by_json_path(node, challenge_path)))
+
+    return challenges
+
+
+def update_challenges(data):
+    challenges = get_challenges(data)
+    for challenge in challenges:
+        challenge.score_tier_1 = 1
+        challenge.score_tier_2 = 2
+        challenge.score_tier_3 = 3
+        # This is not just the max value, it's an even 4.25 minutes
+        challenge.par_time = 255
 
 
 def main(argv):

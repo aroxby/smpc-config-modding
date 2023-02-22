@@ -3,7 +3,9 @@ INPUT_DIR=config
 OUTPUT_DIR=build
 
 .PHONY: all
-all: $(OUTPUT_DIR)/progression.smpcmod
+# TODO Update the python script to work with either config
+# all: $(OUTPUT_DIR)/progression.smpcmod
+all :$(OUTPUT_DIR)/challenges.smpcmod
 
 $(OUTPUT_DIR)/%.json: $(INPUT_DIR)/%.json
 	mkdir -p $(dir $@)
@@ -16,6 +18,11 @@ $(OUTPUT_DIR)/%.json: $(INPUT_DIR)/%.json
 $(OUTPUT_DIR)/progression.smpcmod: $(OUTPUT_DIR)/system/system_progression.config SMPCMod.info
 	7z a -tzip -mx=9 $@ ./$^
 	7z rn $@ system_progression.config ModFiles/0_9C9C72A303FCFA30
+
+# FIXME: The SMPCMod.info file is the same one from the progression mode
+$(OUTPUT_DIR)/challenges.smpcmod: $(OUTPUT_DIR)/system/system_challengebasescorelist.config SMPCMod.info
+	7z a -tzip -mx=9 $@ ./$^
+	7z rn $@ system_challengebasescorelist.config ModFiles/0_93E67681DD14D1D7
 
 .PHONY: clean
 clean:
