@@ -1,5 +1,5 @@
 CONFIG_CONVERTER="../SpiderManPCTool v1.1.1-51-v1-1-1-1660951619/Config Converter-2428-1-0-1664221419.exe"
-INPUT_DIR=config
+INPUT_DIR=configs
 OUTPUT_DIR=build
 
 .PHONY: all
