@@ -10,8 +10,8 @@ $(OUTPUT_DIR)/%.json: $(INPUT_DIR)/%.json
 	mkdir -p $(dir $@)
 	cp $< $@
 
+# Note: Can't build two mods for this because they would each replace the entire progression system
 %/system_progression.config: %/system_progression.json
-	# Note: Can't build two mods for this because they would each replace the entire progression system
 	python3 scripts/mod-maker.py --input $< --mods skills upgrades
 	$(CONFIG_CONVERTER) $<
 
