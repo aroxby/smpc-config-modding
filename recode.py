@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+import argparse
 from collections import defaultdict
 import json
+from os.path import basename
 import sys
 
 
@@ -139,13 +141,12 @@ class Challenge:
         self.node['ParTime']['Value'] = value
 
 
-def recode(path):
+def recode(path, mods):
     with open(path) as file:
         data = load(file)
 
-    # update_skills(data)
-    # update_upgrades(data)
-    update_challenges(data)
+    for mod in mods:
+        mod(data)
 
     with open(path, "w") as file:
         dump(data, file)
@@ -256,12 +257,27 @@ def update_challenges(data):
         challenge.par_time = 255
 
 
+def parse_args(argv, mods):
+    parser = argparse.ArgumentParser(basename(argv[0]))
+    parser.add_argument('--input', help='path to JSON config', required=True)
+    # nargs='+' is supposed to imply required=True
+    parser.add_argument('--mods', help='mods to apply', choices=mods, nargs='+', required=True)
+    args = parser.parse_args(argv[1:])
+    return args
+
+
 def main(argv):
-    if len(argv) != 2:
-        name = argv[0]
-        print(f'Usage: {name} [JSON_FILE]', file=sys.stderr)
-    path = argv[1]
-    recode(path)
+    available_mods = {
+        'skills': update_skills,
+        'upgrades': update_upgrades,
+        'challenges': update_challenges,
+    }
+
+    args = parse_args(argv, available_mods)
+    selected_mods = set(available_mods[mod_name] for mod_name in args.mods)
+    path = args.input
+
+    recode(path, selected_mods)
 
 
 if __name__ == '__main__':
