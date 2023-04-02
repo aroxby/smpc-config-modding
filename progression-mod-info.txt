@@ -1,0 +1,3 @@
+Title=Everything is free
+Author=aroxby@users.noreply.github.com
+Description=Remove upgrade and crafting requirements

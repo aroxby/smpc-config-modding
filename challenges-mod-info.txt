@@ -1,0 +1,3 @@
+Title=Easy Challenges
+Author=aroxby@users.noreply.github.com
+Description=Drastically lower challenge score requirements and increase time
