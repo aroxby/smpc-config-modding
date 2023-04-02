@@ -3,7 +3,7 @@ INPUT_DIR=configs
 OUTPUT_DIR=build
 
 .PHONY: all
-all :$(OUTPUT_DIR)/progression.smpcmod $(OUTPUT_DIR)/challenges.smpcmod
+all :$(OUTPUT_DIR)/progression.smpcmod $(OUTPUT_DIR)/challenge_scores.smpcmod
 
 # TODO: This should be the steps the runs the mod maker
 $(OUTPUT_DIR)/%.json: $(INPUT_DIR)/%.json
@@ -19,17 +19,45 @@ $(OUTPUT_DIR)/%.json: $(INPUT_DIR)/%.json
 	python3 scripts/mod-maker.py --input $< --mods challenges
 	$(CONFIG_CONVERTER) $<
 
-$(OUTPUT_DIR)/progression.smpcmod: $(OUTPUT_DIR)/system/system_progression.config progression-mod-info.txt
-	scripts/zip-maker.py \
-		--zip $@ \
-		--input-list $(OUTPUT_DIR)/system/system_progression.config progression-mod-info.txt \
-		--output-list ModFiles/0_9C9C72A303FCFA30 SMPCMod.info
+%/system_challengectns1scorelist.config: %/system_challengectns1scorelist.json
+	python3 scripts/mod-maker.py --input $< --mods challenges
+	$(CONFIG_CONVERTER) $<
 
-$(OUTPUT_DIR)/challenges.smpcmod: $(OUTPUT_DIR)/system/system_challengebasescorelist.config challenges-mod-info.txt
+%/system_challengectns2scorelist.config: %/system_challengectns2scorelist.json
+	python3 scripts/mod-maker.py --input $< --mods challenges
+	$(CONFIG_CONVERTER) $<
+
+%/system_challengectns3scorelist.config: %/system_challengectns3scorelist.json
+	python3 scripts/mod-maker.py --input $< --mods challenges
+	$(CONFIG_CONVERTER) $<
+
+$(OUTPUT_DIR)/progression.smpcmod: progression-mod-info.txt $(OUTPUT_DIR)/system/system_progression.config
 	scripts/zip-maker.py \
 		--zip $@ \
-		--input-list $(OUTPUT_DIR)/system/system_challengebasescorelist.config challenges-mod-info.txt \
-		--output-list ModFiles/0_93E67681DD14D1D7 SMPCMod.info
+		--input-list progression-mod-info.txt $(OUTPUT_DIR)/system/system_progression.config \
+		--output-list SMPCMod.info ModFiles/0_9C9C72A303FCFA30
+
+$(OUTPUT_DIR)/challenge_scores.smpcmod: \
+ challenges-mod-info.txt \
+ $(OUTPUT_DIR)/system/system_challengebasescorelist.config \
+ $(OUTPUT_DIR)/system/system_challengectns1scorelist.config \
+ $(OUTPUT_DIR)/system/system_challengectns2scorelist.config \
+ $(OUTPUT_DIR)/system/system_challengectns3scorelist.config
+	scripts/zip-maker.py \
+		--zip $@ \
+		--input-list \
+			challenges-mod-info.txt \
+			$(OUTPUT_DIR)/system/system_challengebasescorelist.config \
+			$(OUTPUT_DIR)/system/system_challengectns1scorelist.config \
+			$(OUTPUT_DIR)/system/system_challengectns2scorelist.config \
+			$(OUTPUT_DIR)/system/system_challengectns3scorelist.config \
+		--output-list \
+			SMPCMod.info \
+			ModFiles/0_93E67681DD14D1D7 \
+			ModFiles/0_99172CCC995B6D91 \
+			ModFiles/0_848E94EC9FF134F3 \
+			ModFiles/0_8FF9FCF36268FC2D
+
 
 .PHONY: clean
 clean:
