@@ -3,16 +3,18 @@ INPUT_DIR=configs
 OUTPUT_DIR=build
 
 .PHONY: all
-# TODO Update the python script to work with either config
-# all: $(OUTPUT_DIR)/progression.smpcmod
-all :$(OUTPUT_DIR)/challenges.smpcmod
+all :$(OUTPUT_DIR)/progression.smpcmod $(OUTPUT_DIR)/challenges.smpcmod
 
 $(OUTPUT_DIR)/%.json: $(INPUT_DIR)/%.json
 	mkdir -p $(dir $@)
 	cp $< $@
 
-%.config: %.json
-	python3 recode.py $<
+%/system_progression.config: %/system_progression.json
+	python3 recode.py --input $< --mods skills upgrades
+	$(CONFIG_CONVERTER) $<
+
+%/system_challengebasescorelist.config: %/system_challengebasescorelist.json
+	python3 recode.py --input $< --mods challenges
 	$(CONFIG_CONVERTER) $<
 
 $(OUTPUT_DIR)/progression.smpcmod: $(OUTPUT_DIR)/system/system_progression.config SMPCMod.info
