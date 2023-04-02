@@ -11,7 +11,7 @@ $(OUTPUT_DIR)/%.json: $(INPUT_DIR)/%.json
 	cp $< $@
 
 %/system_progression.config: %/system_progression.json
-	# TODO: Build two mods for this
+	# Note: Can't build two mods for this because they would each replace the entire progression system
 	python3 scripts/mod-maker.py --input $< --mods skills upgrades
 	$(CONFIG_CONVERTER) $<
 
